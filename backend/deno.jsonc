@@ -1,0 +1,14 @@
+{
+  "importMap": "import_map.json",
+  "tasks": {
+    "dev": "deno run --allow-net --allow-read --allow-write --unstable --watch --config deno.jsonc src/main.ts"
+  },
+  "compilerOptions": {
+    "lib": [
+      "deno.unstable",
+      "dom",
+      "ES2015",
+      "ESNext"
+    ]
+  }
+}
