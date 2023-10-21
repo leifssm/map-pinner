@@ -64,7 +64,7 @@ const useFetch = <P extends object | undefined = undefined, Data = any, Error = 
   });
 }
 
-export const useGetLocationsFecther = () => {
+export const useGetLocationsFetcher = () => {
   return useFetch<undefined, { lat: number, lon: number, timestamp: number }[]>("/location/");
 }
 

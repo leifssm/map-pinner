@@ -14,4 +14,5 @@ export const getLocations: TypedMiddleware<GetLocationsGuard> = async () => {
 export const addLocation: TypedMiddleware<AddLocationGuard> = async (ctx) => {
   await branch.addLocation(ctx.state.body);
   logger.info("Successfully added location");
+  return branch.getLocations();
 }

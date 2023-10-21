@@ -1,8 +1,8 @@
 import { useState } from "react";
-import { useAddLocationMutation, useGetLocationsFecther } from "./lib/api/swr-hooks";
+import { useAddLocationMutation, useGetLocationsFetcher } from "./lib/api/swr-hooks";
 
 const App = () => {
-  const { error, isLoading } = useGetLocationsFecther();
+  const { error, isLoading } = useGetLocationsFetcher();
   const { data, isMutating, trigger } = useAddLocationMutation();
   const [lat, setLat] = useState<string | undefined>();
   const [lon, setLon] = useState<string | undefined>();
