@@ -7,17 +7,17 @@ import * as endpoints from "./endpoints.ts";
 const router = new Router<RouterState>();
 router
   .get(
-    "/",
+    "/signin",
     guardMiddleware(
-      guardMiddlewares.getLocationsGuard,
-      endpoints.getLocations
+      guardMiddlewares.signInGuard,
+      endpoints.signIn
     ),
   )
   .post(
-    "/add",
+    "/login",
     guardMiddleware(
-      guardMiddlewares.addLocationGuard,
-      endpoints.addLocation
+      guardMiddlewares.logInGuard,
+      endpoints.logIn
     ),
   )
 

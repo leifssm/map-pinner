@@ -1,6 +1,7 @@
-import { AssertionError } from "https://deno.land/std@0.200.0/assert/assertion_error.ts";
-import { type Middleware, isHttpError } from "https://deno.land/x/oak@v12.6.1/mod.ts";
-import { logger } from "../helpers.ts";
+
+import { AssertionError } from "std/assert/assertion_error.ts";
+import { type Middleware, isHttpError } from "oak";
+import { logger } from "~/helpers.ts";
 
 export const errorMiddleware: Middleware = async (ctx, next) => {
   try {

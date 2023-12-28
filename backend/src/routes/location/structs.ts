@@ -1,16 +1,21 @@
-import { z } from 'https://deno.land/x/zod@v3.22.4/mod.ts'
+import { z } from "zod"
+import { locationStruct } from "~/structs/location.ts";
 
-export const locationStruct = z.object({
-  lat: z.number(),
-  lon: z.number(),
-  timestamp: z.number(),
-})
-
-export const addLocationBodyStruct = locationStruct
-export type AddLocationBodyStruct = z.infer<typeof addLocationBodyStruct>
+export const addLocationBodyStruct = locationStruct.merge(z.object({
+  timestamp: z.number()
+}))
+export type AddLocationBody = z.infer<typeof addLocationBodyStruct>
 
 export const addLocationReturnStruct = addLocationBodyStruct.array()
-export type AddLocationReturnStruct = z.infer<typeof addLocationReturnStruct>
+export type AddLocationReturn = z.infer<typeof addLocationReturnStruct>
 
 export const getLocationsReturnStruct = addLocationBodyStruct.array()
-export type GetLocationsStruct = z.infer<typeof getLocationsReturnStruct>
+export type GetLocationsReturn = z.infer<typeof getLocationsReturnStruct>
+
+export const getLocationBodyStruct = z.object({
+  uuid: z.string().uuid()
+});
+export type GetLocationBody = z.infer<typeof getLocationBodyStruct>
+
+export const getLocationReturnStruct = addLocationBodyStruct.nullable();
+export type GetLocationReturn = z.infer<typeof getLocationReturnStruct>

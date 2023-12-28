@@ -1,15 +1,21 @@
-import { Router } from "https://deno.land/x/oak@v12.6.1/mod.ts";
-import { router as locationRouter } from "./routes/location/router.ts";
-import { errorMiddleware } from "./lib/middleware/error_middleware.ts";
-import { stateMiddleware } from "./lib/middleware/param_middleware.ts";
-import { RouterState } from "./types.ts";
-import { applyBody } from "./lib/helpers.ts";
+import { Router } from "oak";
+import { router as locationRouter } from "@/routes/location/router.ts";
+import { router as usersRouter } from "@/routes/users/router.ts";
+import { errorMiddleware } from "~/middleware/error_middleware.ts";
+import { stateMiddleware } from "~/middleware/param_middleware.ts";
+import { RouterState } from "@/types.ts";
+import { applyBody } from "~/helpers.ts";
 
 const v1Router = new Router<RouterState>()
   .use(
     "/location",
     locationRouter.routes(),
     locationRouter.allowedMethods(),
+  )
+  .use(
+    "/users",
+    usersRouter.routes(),
+    usersRouter.allowedMethods(),
   )
 
 export const router = new Router<RouterState>()

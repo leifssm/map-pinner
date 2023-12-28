@@ -1,4 +1,4 @@
-import { Middleware } from "https://deno.land/x/oak@v12.6.1/mod.ts";
+import { Middleware, httpErrors } from "oak";
 
 export const stateMiddleware: Middleware = async (ctx, next) => {
   ctx.state.getParam = (key: string) => {
@@ -6,7 +6,7 @@ export const stateMiddleware: Middleware = async (ctx, next) => {
     return param ? JSON.parse(param) : null;
   };
   ctx.state.getBody = async () => {
-    if (!ctx.request.hasBody) ctx.throw(415);
+    if (!ctx.request.hasBody) throw new httpErrors.UnsupportedMediaType();
     const value = await ctx.request.body().value;
     return value ? JSON.parse(value) : null;
   }

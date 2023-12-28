@@ -1,7 +1,7 @@
 import { middleware as locationMiddleware } from "./location.ts";
-import { database } from "./main.ts";
+import { middleware as usersMiddleware } from "./users.ts";
+import { database } from "db";
 
-const db = database
+export const db = database
   .use("location", locationMiddleware)
-
-export { db };
+  .use("users", usersMiddleware);

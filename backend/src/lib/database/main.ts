@@ -30,7 +30,7 @@ class Database<V extends DatabaseBranch = {}> {
     if (name in this.#branches) throw new Error(`Database branch ${name} already exists`);
     const list = middlewares.list as M;
     // @ts-ignore - this is fine
-    const hydratedMiddleware: HydrateBranchMiddlewares<M> = {} satisfies HydratedBranchMiddlewares;
+    const hydratedMiddleware: HydrateBranchMiddlewares<M> = {};
     for (const key in list) {
       const middleware = list[key];
       const hydrated: HydratedMiddleware = async (...args) => {
@@ -54,7 +54,7 @@ export class Branch<V extends BranchMiddlewares> {
   }
   // deno-lint-ignore no-explicit-any
   add<N extends string, Args extends any[] = any[], R = void>(name: N, middleware: Middleware<Args, R, HydrateBranchMiddlewares<V>>) {
-    if (name in this.#middlewares) throw new Error(`Database branch ${name} already exists`);
+    if (name in this.#middlewares) throw new Error(`Database middleware "${name}" already exists`);
     const newBranch = { ...this.#middlewares, [name]: middleware } as { [key in N]: Middleware<Args, R, V> } & V;
     return new Branch<{ [key in N]: Middleware<Args, R, V> } & V>(newBranch) satisfies Branch<BranchMiddlewares>;
   }
