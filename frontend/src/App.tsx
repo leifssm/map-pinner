@@ -1,17 +1,26 @@
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useAddLocationMutation, useGetLocationsFetcher } from "./lib/api/swr-hooks";
+import { Map } from "./lib/components/Map";
+import { GPSContext } from "./lib/contexts";
+import { useGPS } from "./lib/hooks/useGPSContext";
+import BoundryWrapper from "./lib/components/BoundryWrapper";
+import { RouterProvider } from "react-router-dom";
+import { router } from "./router";
+import { AlertAdder, AlertHandler } from "./lib/components/AlertHandler";
 
 const App = () => {
-  const { error, isLoading } = useGetLocationsFetcher();
-  const { data, isMutating, trigger } = useAddLocationMutation();
-  const [lat, setLat] = useState<string | undefined>();
-  const [lon, setLon] = useState<string | undefined>();
-  const [timestamp, setTimestamp] = useState<string | undefined>();
-  console.log(data)
+  const [gps, error] = useGPS();
+  const addError = useRef<AlertAdder>();
+  // const { error, isLoading } = useGetLocationsFetcher();
+  // const { data, isMutating, trigger } = useAddLocationMutation();
+  // const [lat, setLat] = useState<string | undefined>();
+  // const [lon, setLon] = useState<string | undefined>();
+  // const [timestamp, setTimestamp] = useState<string | undefined>();
 
   return (
-    <div>
-      <h1>Hello!</h1>
+    <GPSContext.Provider value={gps}>
+      <RouterProvider router={router}/>
+      {/* <h1>Hello!</h1>
       {error && <div>error: {error?.message}</div>}
       Latitude
       <input value={lat} onChange={e => setLat(e.target.value)} type="text" />
@@ -28,8 +37,9 @@ const App = () => {
       }}>Add</button>
       <div>
         {isLoading ? "Loading..." : data?.map((loc,i) => <div key={i}>{loc.lat} & {loc.lon} at {loc.timestamp}</div>)}
-      </div>
-    </div>
+      </div> */}
+      <AlertHandler callback={addError}/>
+    </GPSContext.Provider>
   )
 }
 

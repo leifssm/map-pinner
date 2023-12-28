@@ -8,7 +8,6 @@ const resolveUrl = (...path: string[]) => {
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 const useMutation = <Args extends object | undefined = undefined, Data = any, Error = any>(url: string) => {
   return useSWRMutation<Data, Error, Key, Args>(url, async (_: unknown, options: { arg: Args } ) => {
-    console.log(options);
     let request: Request;
     try {
       console.log(JSON.stringify(options.arg))
@@ -50,7 +49,6 @@ const useFetch = <P extends object | undefined = undefined, Data = any, Error = 
       const value = arg.params[key];
       urlString.searchParams.set(key, JSON.stringify(value));
     }
-    console.log(urlString)
     const request = new Request(urlString);
 
     const response = await fetch(request);
