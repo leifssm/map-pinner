@@ -1,4 +1,5 @@
 import { Box } from "@mui/material";
+import { useHealthFetcher } from "api";
 import { ReactNode, useEffect, useRef, useState } from "react";
 
 interface BoundryWrapperProps {
@@ -9,7 +10,6 @@ const BoundryWrapper = ({ element: Child }: BoundryWrapperProps) => {
   const ref = useRef<HTMLDivElement>(null);
   const [width, setWidth] = useState<number | null>(null);
   const [height, setHeight] = useState<number | null>(null);
-
   useEffect(() => {
     const element = ref.current
     if (!element) return
@@ -18,7 +18,8 @@ const BoundryWrapper = ({ element: Child }: BoundryWrapperProps) => {
       setWidth(bound.width);
       setHeight(bound.height);
     })
-    observer.observe(element)
+    observer.observe(element);
+    
     return () => observer.disconnect();
   }, [])
   return (

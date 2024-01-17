@@ -1,7 +1,8 @@
 {
   "importMap": "./import_map.json",
   "tasks": {
-    "dev": "deno run --allow-net --allow-read --allow-write --unstable --watch --config deno.jsonc src/main.ts"
+    "dev": "deno run --allow-net --allow-read --allow-write --unstable --watch --config deno.jsonc src/main.ts",
+    "create-hooks": "deno run --allow-read --allow-write --unstable --config deno.jsonc src/scripts/createHooks.ts",
   },
   "compilerOptions": {
     "lib": [

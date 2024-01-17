@@ -1,16 +1,15 @@
 import useSWR, { type Key } from "swr";
 import useSWRMutation from "swr/mutation"
 
-const resolveUrl = (...path: string[]) => {
+export const resolveUrl = (...path: string[]) => {
   return `${import.meta.env.VITE_SERVER_URL}/api/v1/${path.join("/")}`.replace(/\/+/g, "/");
 }
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-const useMutation = <Args extends object | undefined = undefined, Data = any, Error = any>(url: string) => {
-  return useSWRMutation<Data, Error, Key, Args>(url, async (_: unknown, options: { arg: Args } ) => {
+export const useMutation = <ReturnType = any, Args extends object | undefined = undefined, Error = any>(url: string) => {
+  return useSWRMutation<ReturnType, Error, Key, Args>(url, async (_: unknown, options: { arg: Args } ) => {
     let request: Request;
     try {
-      console.log(JSON.stringify(options.arg))
       const urlString = new URL(resolveUrl(url));
       request = new Request(urlString, {
         method: "POST",
@@ -29,11 +28,11 @@ const useMutation = <Args extends object | undefined = undefined, Data = any, Er
       throw error;
     }
     const json = await response.json();
-    return json.body as Data;
+    return json.body as ReturnType;
   });
 }
 
-type FetcherArgs<P extends object | undefined> = {
+export type FetcherArgs<P extends object | undefined> = {
   skip?: boolean;
   params?: {
     [K in keyof P]: P[K];
@@ -41,10 +40,12 @@ type FetcherArgs<P extends object | undefined> = {
 }
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-const useFetch = <P extends object | undefined = undefined, Data = any, Error = any>(url: string, arg?: FetcherArgs<P>) => {
+export const useFetcher = <ReturnType = any, Args extends object | undefined = undefined, Error = any>(url: string, arg?: FetcherArgs<Args>) => {
   const key = arg?.skip ? null : url;
-  return useSWR<Data, Error>(key, async () => {
+  return useSWR<ReturnType, Error>(key, async () => {
     const urlString = new URL(resolveUrl(url));
+    console.log("urlString:", urlString);
+    
     if (arg?.params) for (const key in arg.params) {
       const value = arg.params[key];
       urlString.searchParams.set(key, JSON.stringify(value));
@@ -60,12 +61,4 @@ const useFetch = <P extends object | undefined = undefined, Data = any, Error = 
     const json = await response.json();
     return json.body;
   });
-}
-
-export const useGetLocationsFetcher = () => {
-  return useFetch<undefined, { lat: number, lon: number, timestamp: number }[]>("/location/");
-}
-
-export const useAddLocationMutation = () => {
-  return useMutation<{ lat: number, lon: number, timestamp: number }, null>("/location/add");
 }

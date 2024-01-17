@@ -6,7 +6,7 @@ import { stateMiddleware } from "~/middleware/param_middleware.ts";
 import { RouterState } from "@/types.ts";
 import { applyBody } from "~/helpers.ts";
 
-const v1Router = new Router<RouterState>()
+export const v1Router = new Router<RouterState>()
   .use(
     "/location",
     locationRouter.routes(),
@@ -17,6 +17,9 @@ const v1Router = new Router<RouterState>()
     usersRouter.routes(),
     usersRouter.allowedMethods(),
   )
+  .get("/health", ctx => {
+    applyBody(ctx, "ok");
+  });
 
 export const router = new Router<RouterState>()
   .use(
@@ -26,6 +29,3 @@ export const router = new Router<RouterState>()
     v1Router.routes(),
     v1Router.allowedMethods(),
   )
-  .get("/health", ctx => {
-    applyBody(ctx, "ok");
-  });
