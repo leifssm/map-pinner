@@ -9,6 +9,9 @@
     "oak": "https://deno.land/x/oak@v12.6.1/mod.ts",
     "cors": "https://deno.land/x/cors@v1.2.2/mod.ts",
     "bcrypt": "https://deno.land/x/bcrypt@v0.4.1/mod.ts",
+    "crayon": "https://deno.land/x/crayon@3.3.3/mod.ts",
+    "tui": "https://deno.land/x/tui@2.1.11/mod.ts",
+    "tui-c": "https://deno.land/x/tui@2.1.11/src/components/mod.ts",
     "std/": "https://deno.land/std@0.200.0/"
   }
 }

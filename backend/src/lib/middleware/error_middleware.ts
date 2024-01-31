@@ -1,7 +1,7 @@
 
 import { AssertionError } from "std/assert/assertion_error.ts";
 import { type Middleware, isHttpError } from "oak";
-import { logger } from "~/helpers.ts";
+import { display } from "@/logger.ts";
 
 export const errorMiddleware: Middleware = async (ctx, next) => {
   try {
@@ -16,6 +16,6 @@ export const errorMiddleware: Middleware = async (ctx, next) => {
     }
     ctx.response.body = { error: error.message ?? "Internal Server Error" };
     ctx.response.type = "json";
-    logger.error(ctx.response.status, error.message);
+    display.action.error(ctx.response.status, error.message);
   }
 }

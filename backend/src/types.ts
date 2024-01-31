@@ -1,6 +1,6 @@
 export type Prettify<T> = {
-  [K in keyof T]: T[K]
-// deno-lint-ignore ban-types
+  [K in keyof T]: T[K];
+  // deno-lint-ignore ban-types
 } & {};
 
 export interface Stringable {

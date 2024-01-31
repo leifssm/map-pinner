@@ -1,10 +1,13 @@
 /// <reference lib="deno.unstable" />
 
+import "~/extended-promises.ts";
+
 import { Application } from "oak";
 import { oakCors } from "cors";
 import { router } from "@/routes.ts";
-import { logger } from "~/helpers.ts";
 import * as cron from "~/cron/index.ts";
+import { display } from "@/logger.ts";
+import "@/display.ts";
 
 const app = new Application();
 app
@@ -14,7 +17,7 @@ app
 
 
 app.addEventListener("listen", ({ hostname, port, secure }) => {
-  logger.info(
+  display.action.info(
     `Listening on: ${secure ? "https://" : "http://"}${
       hostname ?? "localhost"
     }:${port}`,

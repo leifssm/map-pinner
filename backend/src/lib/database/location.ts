@@ -1,6 +1,6 @@
 import { IdentifiedLocation, Location } from "route/location/structs.ts";
-import { logger } from "~/helpers.ts";
 import { Branch } from "db";
+import { display } from "@/logger.ts";
 
 const LOCATION_LIFETIME = 1000 * 60 * 60 * 24;
 
@@ -55,7 +55,7 @@ export const middleware = new Branch()
   .add("clearLocations", async ({ branch }) => {
     const keys = await branch.getAllLocationKeys();
     await branch.deleteLocations(keys);
-    logger.warn("Cleared locations");
+    display.action.warn("Cleared locations");
   })
   .add("filterLocations", async ({ branch }) => {
     const locations = await branch.getLocations();

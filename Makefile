@@ -6,5 +6,7 @@ f:
 	make devf
 b:
 	make devb
+display:
+	deno task --cwd backend display
 create-hooks:
 	deno task --cwd backend create-hooks

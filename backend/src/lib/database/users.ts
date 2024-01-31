@@ -1,8 +1,9 @@
 import * as bcrypt from "bcrypt";
 import { httpErrors } from "oak";
-import { getKvBranchChildren, logger, wait } from "~/helpers.ts";
+import { getKvBranchChildren, wait } from "~/helpers.ts";
 import { Branch } from "db";
 import { User } from "~/structs/user.ts";
+import { display } from "@/logger.ts";
 
 const MAX_LOGIN_ATTEMPTS = 5;
 
@@ -49,5 +50,5 @@ export const middleware = new Branch()
   })
   .add("log", async ({ kv }) => {
     const users = await getKvBranchChildren<User>(kv, ["users"]);
-    logger.log("Users:", users);
+    display.action.log("Users:", users);
   })

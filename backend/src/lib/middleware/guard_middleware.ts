@@ -1,8 +1,9 @@
 import { Status } from "std/http/http_status.ts";
 import { Context, Middleware, type Next, httpErrors } from "oak";
 import type { ZodTypeAny, z } from "zod"; 
-import { applyBody, logger } from "~/helpers.ts";
+import { applyBody } from "~/helpers.ts";
 import { PromiseOrAwaited } from "@/types.ts";
+import { display } from "@/logger.ts";
 
 export interface GuardOptions {
   body?: z.ZodTypeAny;
@@ -35,7 +36,7 @@ export const guardMiddleware = <T extends GuardOptions>(options: T, controller?:
       const body = await ctx.request.body({ type: "json" }).value;
       const parsedBody = options.body.safeParse(body);
       if (!parsedBody.success) {
-        logger.info("zoderror:")
+        display.action.error("zoderror:")
         throw new httpErrors.BadRequest(parsedBody.error.toString());
       }
       // @ts-ignore - should be fine
