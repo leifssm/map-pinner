@@ -4,13 +4,14 @@ import {
   Computed,
   Effect,
   GridLayout,
+  Rectangle,
   Signal,
   Tui,
   handleInput,
   handleKeyboardControls,
   handleMouseControls,
 } from 'tui';
-import { Box, Button, CheckBox, Frame, Input, Label, Mark, Table, Text } from 'tui-c';
+import { Box, Button, CheckBox, Frame, Input, Label, Table, Text } from 'tui-c';
 import { LogEntry, display } from '@/logger.ts';
 
 const charMap = 'rounded';
@@ -43,6 +44,14 @@ const pad = (value: unknown, length = 2) => {
   return s.padStart(length, '0');
 };
 
+const padCenter = (value: unknown, length = 2) => {
+  const s = value?.toString() ?? '';
+  const diff = length - s.length;
+  return s
+    .padStart(Math.floor(diff / 2) + s.length, ' ')
+    .padEnd(length, ' ');
+}
+
 const formatDate = (date: Date) => {
   const hours = date.getHours();
   const minutes = date.getMinutes();
@@ -54,8 +63,13 @@ const formatDate = (date: Date) => {
   return `${pad(hours)}:${pad(minutes)}:${pad(seconds)} ${pad(day)}/${pad(month)}/${pad(year)}`;
 };
 
+type CommandLog = {
+  message: string;
+};
+
 // --- Signals ---
 const logSignal = new Signal<LogEntry[]>([]);
+const adminLog = new Signal<CommandLog[]>([]);
 const showLogs = new Signal(true);
 const showInfo = new Signal(true);
 const showWarnings = new Signal(true);
@@ -63,7 +77,7 @@ const showErrors = new Signal(true);
 
 const startEntry = {
   message: 'Start of log',
-  type: '------' as "LOG",
+  type: '------' as 'LOG',
   timestamp: new Date(),
 } satisfies LogEntry;
 
@@ -132,19 +146,21 @@ new Effect(() => {
   if (scrollOffset == table.selectedRow.peek()) table.selectedRow.value++;
 });
 
-new Input({
+const commandline = new Input({
   parent: tui,
   placeholder: 'Type here...',
   theme: {
-    base: crayon.bgGreen,
-    focused: crayon.bgLightGreen,
-    active: crayon.bgYellow,
-    cursor: {},
+    base: crayon.bgBlack.white,
+    focused: crayon.bgLightBlack.black,
+    active: crayon.bgCyan.black,
+    cursor: {
+      base: crayon.invert,
+    },
   },
   rectangle: new Computed(() => {
     const { width, column, row, height } = layout.element('b').value;
     return {
-      width: width - 5,
+      width: width - 11,
       column: column + 1,
       row: height + row - 2,
     };
@@ -152,9 +168,34 @@ new Input({
   zIndex: 1,
 });
 
+const submitButton = new Button({
+  parent: tui,
+  theme: {
+    base: crayon.bgGreen.white,
+    focused: crayon.bgRgb(26, 138, 89).black,
+    active: crayon.bgRgb(22, 86, 56).white,
+  },
+  label: {
+    text: 'Submit',
+  },
+  rectangle: new Computed(() => {
+    const { width, column, row, height } = layout.element('b').value;
+    return {
+      width: 8,
+      column: column + width - 10,
+      row: height + row - 2,
+      height: 2,
+    };
+  }),
+
+  zIndex: 1,
+});
+
 const inputFrame = new Frame({
   parent: tui,
-  theme: {},
+  theme: {
+    base: tui.style,
+  },
   charMap: charMap,
   rectangle: new Computed(() => {
     const { width, column, row, height } = table.rectangle.value;
@@ -170,7 +211,9 @@ const inputFrame = new Frame({
 
 new Text({
   parent: tui,
-  theme: {},
+  theme: {
+    base: tui.style,
+  },
   text: new Computed(() => {
     const { leftHorizontal, rightHorizontal, horizontal } = table.charMap.peek();
     return leftHorizontal + horizontal.repeat(Math.max(0, table.rectangle.value.width - 2)) + rightHorizontal;
@@ -191,7 +234,9 @@ type LayoutElement = GetElements<typeof layout>;
 const createFrameForLayout = (element: LayoutElement) => {
   new Frame({
     parent: tui,
-    theme: {},
+    theme: {
+      base: tui.style,
+    },
     charMap: charMap,
     rectangle: new Computed(() => {
       const { width, column, row, height } = layout.element(element).value;
@@ -218,7 +263,7 @@ const createCheckBoxForLayout = (
   new CheckBox({
     parent: tui,
     theme: {
-      base: crayon.bgCyan.white,
+      base: crayon.bgCyan.bold,
       focused: crayon.bgLightBlack.white,
       active: crayon.bgYellow,
     },
@@ -247,7 +292,9 @@ const createTextForLayout = (
 ) => {
   new Text({
     parent: tui,
-    theme: {},
+    theme: {
+      base: tui.style,
+    },
     text,
     rectangle: new Computed(() => {
       const { column, row, width, height } = layout.element(element).value;
@@ -265,19 +312,219 @@ const createTextForLayout = (
   });
 };
 
-createTextForLayout('c', { x: 0, y: 0 }, 'Log Viewer');
-createTextForLayout('c', { x: 0, y: 1 }, 'Show Logs');
-createCheckBoxForLayout('c', { x: -1, y: 1 }, showLogs);
+const createPopup = () => {
+  const width = 40;
+  const height = 10;
+  const tuiSize = tui.rectangle.peek();
 
-createTextForLayout('c', { x: 0, y: 2 }, 'Show Info');
-createCheckBoxForLayout('c', { x: -1, y: 2 }, showInfo);
+  const rectangle = new Signal<Rectangle>({
+    column: Math.floor(tuiSize.width / 2 - width / 2),
+    row: Math.floor(tuiSize.height / 2 - height / 2),
+    width: width,
+    height: height,
+  });
 
-createTextForLayout('c', { x: 0, y: 3 }, 'Show Warnings');
-createCheckBoxForLayout('c', { x: -1, y: 3 }, showWarnings);
+  const popup = new Box({
+    parent: tui,
+    theme: {
+      base: crayon.bgLightBlack.white,
+    },
+    rectangle,
+    zIndex: 100,
+  });
+  popup.interact = () => {
+    popup.state.value = 'focused';
+  };
+  new Frame({
+    parent: popup,
+    charMap: 'sharp',
+    theme: {
+      base: popup.style.peek(),
+    },
+    rectangle,
+    zIndex: popup.zIndex.peek(),
+  });
 
-createTextForLayout('c', { x: 0, y: 4 }, 'Show Errors');
-createCheckBoxForLayout('c', { x: -1, y: 4 }, showErrors);
+  const closeButton = new Button({
+    parent: popup,
+    theme: {
+      base: crayon.bgRed.white,
+      focused: crayon.bgLightBlack.white,
+      active: crayon.bgRed.black,
+    },
+    label: {
+      text: 'X',
+    },
+    rectangle: new Computed(() => {
+      const { width, column, row } = rectangle.value;
+      return {
+        column: column + width - 4,
+        row: row,
+        width: 3,
+        height: 1,
+      };
+    }),
+    zIndex: popup.zIndex.peek(),
+  });
 
-// setInterval(() => {
-//   display.action.error('This is an error message');
-// }, 1000);
+  closeButton.on('mousePress', () => popup.destroy());
+
+  let destroyed = false;
+  const onDestroy: VoidFunction[] = [];
+
+  popup.on('destroy', () => {
+    destroyed = true;
+    for (const f of onDestroy) f();
+    onDestroy.length = 0;
+  });
+
+  return {
+    rectangle,
+    onClose: (f: VoidFunction) => {
+      if (destroyed) return void f();
+      onDestroy.push(f);
+    },
+  };
+};
+
+createTextForLayout('c', { x: 7, y: 0 }, 'Log Viewer');
+createTextForLayout('c', { x: 1, y: 1 }, 'Show Logs');
+createCheckBoxForLayout('c', { x: -2, y: 1 }, showLogs);
+
+createTextForLayout('c', { x: 1, y: 2 }, 'Show Info');
+createCheckBoxForLayout('c', { x: -2, y: 2 }, showInfo);
+
+createTextForLayout('c', { x: 1, y: 3 }, 'Show Warnings');
+createCheckBoxForLayout('c', { x: -2, y: 3 }, showWarnings);
+
+createTextForLayout('c', { x: 1, y: 4 }, 'Show Errors');
+createCheckBoxForLayout('c', { x: -2, y: 4 }, showErrors);
+
+type CommandTree = {
+  [key: string]: CommandTree | VoidFunction;
+} & {
+  index?: VoidFunction;
+};
+
+const commandTree: CommandTree = {
+  toggle: {
+    log: () => (showLogs.value = !showLogs.value),
+    info: () => (showInfo.value = !showInfo.value),
+    warn: () => (showWarnings.value = !showWarnings.value),
+    error: () => (showErrors.value = !showErrors.value),
+    allOn: () => {
+      showLogs.value = true;
+      showInfo.value = true;
+      showWarnings.value = true;
+      showErrors.value = true;
+    },
+    allOff: () => {
+      showLogs.value = false;
+      showInfo.value = false;
+      showWarnings.value = false;
+      showErrors.value = false;
+    },
+    index: () => {
+      const newState = !(showLogs.peek() && showInfo.peek() && showWarnings.peek() && showErrors.peek());
+      showLogs.value = newState;
+      showInfo.value = newState;
+      showWarnings.value = newState;
+      showErrors.value = newState;
+    },
+  },
+  stop: () => Deno.exit(),
+  alert: () => void createPopup(),
+  line: () => display.action.log('----------------------------------------'),
+};
+
+const runCommand = (command: string) => {
+  if (!command.startsWith('/')) return false;
+  const args = command.slice(1).split(' ');
+  if (args.length === 1 && args[0] === '') return false;
+
+  let current = commandTree;
+  for (let i = 0; i < args.length; i++) {
+    const argument = args[i];
+    const value = current[argument];
+
+    if (!value) return false;
+    if (typeof value === 'function') {
+      if (i !== args.length - 1) return false;
+      value();
+      return true;
+    }
+    current = value;
+  }
+  if (current.index) {
+    current.index();
+    return true;
+  }
+  return false;
+};
+
+let commandLineLookback = 0;
+const handleSubmit = () => {
+  const value = commandline.text.peek();
+  const result = runCommand(value);
+  if (result) {
+    adminLog.value = [...adminLog.peek(), { message: value }];
+    commandline.cursorPosition.value = 0;
+    commandline.text.value = '';
+    commandLineLookback = adminLog.peek().length;
+  }
+};
+
+commandline.on('keyPress', e => {
+  const unpure = e.ctrl || e.meta || e.shift;
+  switch (e.key) {
+    case 'return':
+      if (unpure) return;
+      handleSubmit();
+      return;
+    case 'up': {
+      if (unpure) return;
+      if (commandLineLookback <= 0 || adminLog.peek().length === 0) return;
+      commandLineLookback--;
+      const newMessage = adminLog.peek()[commandLineLookback].message;
+      commandline.text.value = newMessage;
+      commandline.cursorPosition.value = newMessage.length;
+      return;
+    }
+    case 'down': {
+      if (unpure) return;
+      if (commandLineLookback >= adminLog.peek().length) return;
+      commandLineLookback++;
+      const newMessage = adminLog.peek()[commandLineLookback]?.message ?? '';
+      commandline.text.value = newMessage;
+      commandline.cursorPosition.value = newMessage.length;
+      return;
+    }
+  }
+});
+
+submitButton.on('mousePress', handleSubmit);
+adminLog.value = [];
+
+new Label({
+  parent: tui,
+  theme: {
+    base: crayon.bgBlack.white,
+  },
+  text: new Computed(() => {
+    const rect = layout.element('d').value;
+    const latestCommands = adminLog.value.slice(-(rect.height - 3));
+    return (
+      padCenter("Recent Commands", rect.width - 2) + 
+      '\n' +
+      latestCommands.map(v => v.message).join('\n')
+    );
+  }),
+  rectangle: new Computed(() => {
+    const { column, row } = layout.element('d').value;
+    return {
+      column: column + 1,
+      row: row + 1,
+    };
+  }),
+  zIndex: 1,
+});

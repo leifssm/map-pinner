@@ -13,7 +13,6 @@ export const wait = (milliseconds: number) => {
   return new Promise(resolve => setTimeout(resolve, milliseconds));
 }
 
-
 export const getKvBranchChildren = async <T>(kv: Deno.Kv, branch: string[]) => {
   const list = kv.list<T>({ prefix: branch });
   const output = [];
