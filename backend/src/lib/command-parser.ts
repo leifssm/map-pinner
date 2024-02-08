@@ -4,6 +4,8 @@ export type CommandTree = {
   index?: VoidFunction;
 };
 
+export type CommandTreeRoot = Omit<CommandTree, 'index' | number>;
+
 export interface ToolTip {
   tooltip: string;
   action: string | null;
@@ -14,7 +16,7 @@ export class CommandParser {
   tree: CommandTree;
   #commandRegex = /^\/(?:[\w\d]+(?: [\w\d]+)* ?)?\t?$/;
 
-  constructor(tree: CommandTree) {
+  constructor(tree: CommandTreeRoot) {
     this.tree = tree;
   }
 
@@ -65,7 +67,7 @@ export class CommandParser {
   getToolTip(command: string): ToolTip {
     if (!command || command === '')
       return {
-        tooltip: '\n      Start typing\n        to see\n      suggestions.',
+        tooltip: '      Start typing\n        to see\n      suggestions.',
         action: null,
       };
     if (command[0] !== '/')
@@ -117,14 +119,9 @@ export class CommandParser {
       .sort()
       .map(k => '/' + (branch ? branch + ' ' + k : k) + (typeof current[k] === 'object' ? ' >' : ' '));
 
-    // if (actions.length === 1) {
-    //   const suggestedBranch = current[actions[0].slice(1)];
-    //   const hasIndex = typeof suggestedBranch === 'object' && suggestedBranch?.index;
-    //   if (!hasIndex) actions[0] += ' ';
-    // }
     return {
       tooltip: actions.join('\n'),
-      action: actions[0].replace(/ >$/, '')
+      action: actions[0]?.replace(/ >$/, '') ?? null,
     };
   }
 }
