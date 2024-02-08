@@ -44,7 +44,6 @@ export const useFetcher = <ReturnType = any, Args extends object | undefined = u
   const key = arg?.skip ? null : url;
   return useSWR<ReturnType, Error>(key, async () => {
     const urlString = new URL(resolveUrl(url));
-    console.log("urlString:", urlString);
     
     if (arg?.params) for (const key in arg.params) {
       const value = arg.params[key];
@@ -59,6 +58,6 @@ export const useFetcher = <ReturnType = any, Args extends object | undefined = u
       throw error;
     }
     const json = await response.json();
-    return json.body;
+    return json.body as ReturnType;
   });
 }

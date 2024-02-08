@@ -3,7 +3,7 @@ import { useGPSContext } from "../hooks/useGPSContext";
 import { useCallback, useMemo, useState } from "react";
 import { useAddLocationMutation, useGetLocationsFetcher } from "api";
 import { usePersistent } from "../hooks/usePersistent";
-import { Box, Button, Card, Collapse, IconButton, LinearProgress, Paper, SpeedDial, SpeedDialAction, SpeedDialIcon, Typography, useTheme } from "@mui/material";
+import { Box, Button, Collapse, IconButton, LinearProgress, Paper, SpeedDial, SpeedDialAction, SpeedDialIcon, Typography, useTheme } from "@mui/material";
 import { Edit as EditIcon, AddLocation as AddLocationIcon, RadioButtonChecked as RadioButtonCheckedIcon } from "@mui/icons-material";
 import { transformLocation, transformLocations, Marker } from "../helpers/location";
 

@@ -1,5 +1,4 @@
 import { Box } from "@mui/material";
-import { useHealthFetcher } from "api";
 import { ReactNode, useEffect, useRef, useState } from "react";
 
 interface BoundryWrapperProps {
