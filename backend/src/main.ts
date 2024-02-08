@@ -6,7 +6,7 @@ import { Application } from "oak";
 import { oakCors } from "cors";
 import { router } from "@/routes.ts";
 import * as cron from "~/cron/index.ts";
-import { display } from "@/logger.ts";
+import { display } from "~/logger.ts";
 import "@/display.ts";
 
 const app = new Application();

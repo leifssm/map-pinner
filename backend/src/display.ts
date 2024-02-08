@@ -12,7 +12,8 @@ import {
   handleMouseControls,
 } from 'tui';
 import { Box, Button, CheckBox, Frame, Input, Label, Table, Text } from 'tui-c';
-import { LogEntry, display } from '@/logger.ts';
+import { LogEntry, display } from '~/logger.ts';
+import { CommandParser } from '~/command-parser.ts';
 
 const charMap = 'rounded';
 
@@ -47,10 +48,8 @@ const pad = (value: unknown, length = 2) => {
 const padCenter = (value: unknown, length = 2) => {
   const s = value?.toString() ?? '';
   const diff = length - s.length;
-  return s
-    .padStart(Math.floor(diff / 2) + s.length, ' ')
-    .padEnd(length, ' ');
-}
+  return s.padStart(Math.floor(diff / 2) + s.length, ' ').padEnd(length, ' ');
+};
 
 const formatDate = (date: Date) => {
   const hours = date.getHours();
@@ -152,7 +151,6 @@ const commandline = new Input({
   theme: {
     base: crayon.bgBlack.white,
     focused: crayon.bgLightBlack.black,
-    active: crayon.bgCyan.black,
     cursor: {
       base: crayon.invert,
     },
@@ -332,9 +330,7 @@ const createPopup = () => {
     rectangle,
     zIndex: 100,
   });
-  popup.interact = () => {
-    popup.state.value = 'focused';
-  };
+
   new Frame({
     parent: popup,
     charMap: 'sharp',
@@ -400,29 +396,17 @@ createCheckBoxForLayout('c', { x: -2, y: 3 }, showWarnings);
 createTextForLayout('c', { x: 1, y: 4 }, 'Show Errors');
 createCheckBoxForLayout('c', { x: -2, y: 4 }, showErrors);
 
-type CommandTree = {
-  [key: string]: CommandTree | VoidFunction;
-} & {
-  index?: VoidFunction;
-};
-
-const commandTree: CommandTree = {
+const terminal = new CommandParser({
   toggle: {
-    log: () => (showLogs.value = !showLogs.value),
-    info: () => (showInfo.value = !showInfo.value),
-    warn: () => (showWarnings.value = !showWarnings.value),
-    error: () => (showErrors.value = !showErrors.value),
+    log: () => showLogs.value = !showLogs.value,
+    info: () => showInfo.value = !showInfo.value,
+    warn: () => showWarnings.value = !showWarnings.value,
+    error: () => showErrors.value = !showErrors.value,
     allOn: () => {
-      showLogs.value = true;
-      showInfo.value = true;
-      showWarnings.value = true;
-      showErrors.value = true;
+      showLogs.value = showInfo.value = showWarnings.value = showErrors.value = true;
     },
     allOff: () => {
-      showLogs.value = false;
-      showInfo.value = false;
-      showWarnings.value = false;
-      showErrors.value = false;
+      showLogs.value = showInfo.value = showWarnings.value = showErrors.value = false;
     },
     index: () => {
       const newState = !(showLogs.peek() && showInfo.peek() && showWarnings.peek() && showErrors.peek());
@@ -435,37 +419,14 @@ const commandTree: CommandTree = {
   stop: () => Deno.exit(),
   alert: () => void createPopup(),
   line: () => display.action.log('----------------------------------------'),
-};
-
-const runCommand = (command: string) => {
-  if (!command.startsWith('/')) return false;
-  const args = command.slice(1).split(' ');
-  if (args.length === 1 && args[0] === '') return false;
-
-  let current = commandTree;
-  for (let i = 0; i < args.length; i++) {
-    const argument = args[i];
-    const value = current[argument];
-
-    if (!value) return false;
-    if (typeof value === 'function') {
-      if (i !== args.length - 1) return false;
-      value();
-      return true;
-    }
-    current = value;
-  }
-  if (current.index) {
-    current.index();
-    return true;
-  }
-  return false;
-};
+  log: (a, b, c) => display.action.log(a, b, c),
+});
 
 let commandLineLookback = 0;
+let commandSuggestion: string | null = null;
 const handleSubmit = () => {
   const value = commandline.text.peek();
-  const result = runCommand(value);
+  const result = terminal.safeParse(value);
   if (result) {
     adminLog.value = [...adminLog.peek(), { message: value }];
     commandline.cursorPosition.value = 0;
@@ -499,28 +460,67 @@ commandline.on('keyPress', e => {
       commandline.cursorPosition.value = newMessage.length;
       return;
     }
+    case 'tab': {
+      if (unpure) return;
+      let newText = commandline.text.peek().replace(/\t/g, '');
+      let newCursorPosition = Math.min(newText.length, newText.length);
+      if (commandSuggestion != null) {
+        newText = commandSuggestion;
+        newCursorPosition = commandSuggestion.length;
+      }
+      commandline.text.value = newText;
+      commandline.cursorPosition.value = newCursorPosition;
+    }
   }
 });
 
 submitButton.on('mousePress', handleSubmit);
 adminLog.value = [];
 
+const fitTextToBox = (text: string, width: number, height: number) => {
+  const output = text
+    .split('\n')
+    .map(l => l.slice(0, width))
+    .slice(0, height);
+  const diff = height - output.length;
+  return output.join('\n') + '\n'.repeat(diff);
+};
+
 new Label({
   parent: tui,
   theme: {
-    base: crayon.bgBlack.white,
+    base: tui.style,
   },
   text: new Computed(() => {
     const rect = layout.element('d').value;
     const latestCommands = adminLog.value.slice(-(rect.height - 3));
-    return (
-      padCenter("Recent Commands", rect.width - 2) + 
-      '\n' +
-      latestCommands.map(v => v.message).join('\n')
-    );
+    return padCenter('Recent Commands', rect.width - 2) + '\n' + latestCommands.map(v => v.message).join('\n');
   }),
   rectangle: new Computed(() => {
     const { column, row } = layout.element('d').value;
+    return {
+      column: column + 1,
+      row: row + 1,
+    };
+  }),
+  zIndex: 1,
+});
+
+new Label({
+  parent: tui,
+  theme: {
+    base: tui.style,
+  },
+  text: new Computed(() => {
+    const currentCommand = commandline.text.value;
+    const rect = layout.element('e').value;
+    const tip = terminal.getToolTip(currentCommand);
+    const text = padCenter('Tooltip', rect.width - 2) + '\n' + tip.tooltip;
+    commandSuggestion = tip.action;
+    return fitTextToBox(text, rect.width - 2, rect.height - 2);
+  }),
+  rectangle: new Computed(() => {
+    const { column, row } = layout.element('e').value;
     return {
       column: column + 1,
       row: row + 1,

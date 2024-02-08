@@ -3,7 +3,7 @@ import { httpErrors } from "oak";
 import { getKvBranchChildren, wait } from "~/helpers.ts";
 import { Branch } from "db";
 import { User } from "~/structs/user.ts";
-import { display } from "@/logger.ts";
+import { display } from "~/logger.ts";
 
 const MAX_LOGIN_ATTEMPTS = 5;
 

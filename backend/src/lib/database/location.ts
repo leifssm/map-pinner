@@ -1,6 +1,6 @@
 import { IdentifiedLocation, Location } from "route/location/structs.ts";
 import { Branch } from "db";
-import { display } from "@/logger.ts";
+import { display } from "~/logger.ts";
 
 const LOCATION_LIFETIME = 1000 * 60 * 60 * 24;
 

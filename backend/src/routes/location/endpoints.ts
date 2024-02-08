@@ -1,7 +1,7 @@
 import { db } from "storage";
 import { TypedMiddleware } from "~/middleware/guard_middleware.ts";
 import type { AddLocationGuard, GetLocationGuard, GetLocationsGuard } from "./guard.ts";
-import { display } from "@/logger.ts";
+import { display } from "~/logger.ts";
 
 const branch = db.branch.location;
 

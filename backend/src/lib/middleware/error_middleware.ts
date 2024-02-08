@@ -1,7 +1,7 @@
 
 import { AssertionError } from "std/assert/assertion_error.ts";
 import { type Middleware, isHttpError } from "oak";
-import { display } from "@/logger.ts";
+import { display } from "~/logger.ts";
 
 export const errorMiddleware: Middleware = async (ctx, next) => {
   try {

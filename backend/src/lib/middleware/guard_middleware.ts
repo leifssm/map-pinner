@@ -3,7 +3,7 @@ import { Context, Middleware, type Next, httpErrors } from "oak";
 import type { ZodTypeAny, z } from "zod"; 
 import { applyBody } from "~/helpers.ts";
 import { PromiseOrAwaited } from "@/types.ts";
-import { display } from "@/logger.ts";
+import { display } from "~/logger.ts";
 
 export interface GuardOptions {
   body?: z.ZodTypeAny;

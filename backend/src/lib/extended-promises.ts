@@ -1,3 +1,5 @@
+import { display } from "~/logger.ts";
+
 declare global {
   interface Promise<T> {
     await: T
@@ -6,8 +8,7 @@ declare global {
 
 Object.defineProperty(Promise.prototype, "await", {
   get: function() {
-    // deno-lint-ignore no-explicit-any
-    return new Proxy(this as Promise<any>, {
+    return new Proxy(this, {
       get: async function(target, prop) {
         if (prop === "then") {
           throw new Error("Cannot use the await property on a promise without accessing a property afterwards.");
@@ -21,4 +22,4 @@ Object.defineProperty(Promise.prototype, "await", {
   },
 });
 
-console.log("Extended promises");
+display.action.info("Extended promises");
